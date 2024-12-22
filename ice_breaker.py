@@ -17,7 +17,9 @@ Barack Hussein Obama II[a] (born August 4, 1961) is an American politician who s
 
 def ice_break_with(name: str) -> Tuple:
     linkedin_username = linkedin_lookup_agent.lookup(name=name)
-    linkedin_data = scrape_linkedin_profile(linkedin_profile_url=linkedin_username)
+    linkedin_data = scrape_linkedin_profile(
+        linkedin_profile_url=linkedin_username, mock=True
+    )
 
     summary_template = """
     given the Linkedin information {information} about a person I want you to create:
@@ -39,13 +41,13 @@ def ice_break_with(name: str) -> Tuple:
     # llm = ChatOllama(model="llama3")
     llm = ChatOllama(model="mistral")
 
-    #chain = summary_prompt_template | llm | StrOutputParser()
+    # chain = summary_prompt_template | llm | StrOutputParser()
     chain = summary_prompt_template | llm | summary_parser
     linkedin_data = scrape_linkedin_profile(linkedin_profile_url="")
 
-    res:Summary = chain.invoke(input={"information": linkedin_data})
+    res: Summary = chain.invoke(input={"information": linkedin_data})
 
-    return res,linkedin_data.get("profile_pic_url")
+    return res, linkedin_data.get("profile_pic_url")
 
 
 if __name__ == "__main__":
