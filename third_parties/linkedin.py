@@ -1,18 +1,17 @@
 import os
 import requests
 from dotenv import load_dotenv
-import json 
+import json
+
 load_dotenv()
 
 
-
-def scrape_linkedin_profile(linkedin_profile_url: str, mock: bool = False ):
-    with open('./third_parties/linkedin_profile.json') as f:
+def scrape_linkedin_profile(linkedin_profile_url: str, mock: bool = False):
+    with open("./third_parties/linkedin_profile.json") as f:
         d = json.load(f)
         print(d)
 
         return d
-
 
         """ if mock:
             linkedin_profile_url = ""
@@ -30,6 +29,7 @@ def scrape_linkedin_profile(linkedin_profile_url: str, mock: bool = False ):
         data = response.json()
 
         return data """
+
 
 if __name__ == "__main__":
     print(scrape_linkedin_profile(linkedin_profile_url=""))
