@@ -9,6 +9,7 @@ from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 from langchain.schema import AgentAction, AgentFinish
 from langchain.agents.format_scratchpad import format_log_to_str
+from callbacks import AgentCallbackHandler
 
 load_dotenv()
 
@@ -72,7 +73,7 @@ if __name__ == "__main__":
     )
 
     # llm = ChatOpenAI(temperature=0, stop=["\nObservation"])
-    llm = ChatOllama(model="llama3", temperature=0, stop=["\nObservation"])
+    llm = ChatOllama(model="llama3", temperature=0, stop=["\nObservation"], callbacks=[AgentCallbackHandler()])
     intermediate_steps = []
 
     agent = (
@@ -101,7 +102,7 @@ if __name__ == "__main__":
         observation = tool_to_use.func(str(tool_input))
         print(f"{observation}")
         intermediate_steps.append((agent_step, str(observation)))
-        print("Intermediatestep"+str(intermediate_steps))
+        print("Intermediatestep" + str(intermediate_steps))
         agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
             {
                 "input": "What is the length in characters of text DOG?",
