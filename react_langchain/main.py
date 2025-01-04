@@ -1,10 +1,13 @@
+from typing import List, Union
 from dotenv import load_dotenv
 from langchain.agents import tool
 from langchain.prompts import PromptTemplate
 from langchain.tools.render import render_text_description
 from langchain.agents.output_parsers import ReActSingleInputOutputParser
+from langchain.tools import Tool
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
+from langchain.schema import AgentAction, AgentFinish
 load_dotenv()
 
 @tool
@@ -15,6 +18,12 @@ def get_text_length(text:str)-> int:
         '"'
     ) #stripping non alphabetic characters just in case
     return len(text)
+
+def find_tool_by_name(tools: List[Tool],tool_name:str)->Tool:
+    for tool in tools:
+        if tool.name == tool_name:
+            return tool
+    raise ValueError(f"Tool with name {tool_name} not found")
 
 if __name__ == "__main__":
     print("Hello ReAct LangChain!")
@@ -53,6 +62,10 @@ if __name__ == "__main__":
 
     agent = {"input": lambda x:x["input"]} | prompt | llm | ReActSingleInputOutputParser()
 
-    res = agent.invoke({"input": "What is the length of 'DOG' in characters?'"})
-    print(res)
+    agent_step: Union[AgentAction, AgentFinish] = agent.invoke({"input": "What is the length of 'DOG' in characters?'"})
+    print(agent_step)
+
+    if isinstance(agent_step, AgentAction):
+        tool_name = agent_step.tool
+        tool_to_use = find_tool_by_name(tools, tools)
 
