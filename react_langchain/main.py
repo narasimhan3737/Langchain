@@ -8,34 +8,39 @@ from langchain.tools import Tool
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 from langchain.schema import AgentAction, AgentFinish
+from langchain.agents.format_scratchpad import format_log_to_str
+
 load_dotenv()
+
 
 def get_tools() -> List[Tool]:
     def get_text_length(text: str) -> int:
         """Returns the length of a text by characters."""
         print(f"get_text_length enter with {text=}")
-        text = text.strip("'\n").strip('"')  # Stripping non-alphabetic characters just in case
+        text = text.strip("'\n").strip(
+            '"'
+        )  # Stripping non-alphabetic characters just in case
         return len(text)
 
     return [
         Tool(
             name="get_text_length",
             func=get_text_length,
-            description="Returns the length of a text in characters."
+            description="Returns the length of a text in characters.",
         )
     ]
 
 
-
-def find_tool_by_name(tools: List[Tool],tool_name:str)->Tool:
+def find_tool_by_name(tools: List[Tool], tool_name: str) -> Tool:
     for tool in tools:
         if tool.name == tool_name:
             return tool
     raise ValueError(f"Tool with name {tool_name} not found")
 
+
 if __name__ == "__main__":
     print("Hello ReAct LangChain!")
-    #print(get_text_length(text="Dog"))
+    # print(get_text_length(text="Dog"))
 
     tools = get_tools()
 
@@ -52,25 +57,40 @@ if __name__ == "__main__":
     Action Input: the input to the action
     Observation: the result of the action
     ... (this Thought/Action/Action Input/Observation can repeat N times)
-    Thought: I now know the final answer
+    Thought: If I have all the necessary information, I will finalize the answer.
     Final Answer: the final answer to the original input question
 
     Begin!
 
     Question: {input}
-    Thought:
+    Thought: {agent_scratchpad}
     """
 
-    prompt= PromptTemplate.from_template(template=template).partial(
-        tools=render_text_description(tools), tool_names=", ".join([t.name for t in tools])
+    prompt = PromptTemplate.from_template(template=template).partial(
+        tools=render_text_description(tools),
+        tool_names=", ".join([t.name for t in tools]),
     )
 
-    #llm = ChatOpenAI(temperature=0, stop=["\nObservation"])
+    # llm = ChatOpenAI(temperature=0, stop=["\nObservation"])
     llm = ChatOllama(model="llama3", temperature=0, stop=["\nObservation"])
+    intermediate_steps = []
 
-    agent = {"input": lambda x:x["input"]} | prompt | llm | ReActSingleInputOutputParser()
+    agent = (
+        {
+            "input": lambda x: x["input"],
+            "agent_scratchpad": lambda x: format_log_to_str(x["agent_scratchpad"]),
+        }
+        | prompt
+        | llm
+        | ReActSingleInputOutputParser()
+    )
 
-    agent_step: Union[AgentAction, AgentFinish] = agent.invoke({"input": "What is the length in characters of text DOG?"})
+    agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
+        {
+            "input": "What is the length in characters of text DOG?",
+            "agent_scratchpad": intermediate_steps,
+        }
+    )
     print(agent_step)
 
     if isinstance(agent_step, AgentAction):
@@ -80,4 +100,15 @@ if __name__ == "__main__":
 
         observation = tool_to_use.func(str(tool_input))
         print(f"{observation}")
-
+        intermediate_steps.append((agent_step, str(observation)))
+        print("Intermediatestep"+str(intermediate_steps))
+        agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
+            {
+                "input": "What is the length in characters of text DOG?",
+                "agent_scratchpad": intermediate_steps,
+            }
+        )
+        if isinstance(agent_step, AgentFinish):
+            print(agent_step.return_values)
+        else:
+            print("Error: Agent did not finish.")

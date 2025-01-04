@@ -39,9 +39,9 @@ def ice_break_with(name: str) -> Tuple:
         },
     )
 
-    #llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
+    # llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
     llm = ChatOllama(model="llama3")
-    #llm = ChatOllama(model="mistral")
+    # llm = ChatOllama(model="mistral")
 
     # chain = summary_prompt_template | llm | StrOutputParser()
     chain = summary_prompt_template | llm | summary_parser
