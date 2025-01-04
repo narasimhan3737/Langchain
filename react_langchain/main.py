@@ -76,7 +76,7 @@ if __name__ == "__main__":
     llm = ChatOllama(
         model="llama3",
         temperature=0,
-        stop=["\Observation"],
+        stop=["\nObservation:"],
         callbacks=[AgentCallbackHandler()],
     )
     intermediate_steps = []
