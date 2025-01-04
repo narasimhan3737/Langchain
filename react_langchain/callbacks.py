@@ -14,9 +14,9 @@ class AgentCallbackHandler(BaseCallbackHandler):
         parent_run_id: UUID | None = None,
         tags: list[str] | None = None,
         metadata: dict[str, Any] | None = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> Any:
-        
+
         print(f"***Prompt to LLM was:***\n{prompts[0]}")
         print("******")
 
@@ -27,7 +27,7 @@ class AgentCallbackHandler(BaseCallbackHandler):
             parent_run_id=parent_run_id,
             tags=tags,
             metadata=metadata,
-            **kwargs
+            **kwargs,
         )
 
     def on_llm_end(
@@ -36,9 +36,9 @@ class AgentCallbackHandler(BaseCallbackHandler):
         *,
         run_id: UUID,
         parent_run_id: UUID | None = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> Any:
-        
+
         print(f"***LLM Response:***\n{response.generations[0][0].text}")
         print("******")
 

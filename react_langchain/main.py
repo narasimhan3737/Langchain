@@ -58,7 +58,7 @@ if __name__ == "__main__":
     Action Input: the input to the action
     Observation: the result of the action
     ... (this Thought/Action/Action Input/Observation can repeat N times)
-    Thought: If I have all the necessary information, I will finalize the answer.
+    Thought: I now know the final answer.
     Final Answer: the final answer to the original input question
 
     Begin!
@@ -73,7 +73,12 @@ if __name__ == "__main__":
     )
 
     # llm = ChatOpenAI(temperature=0, stop=["\nObservation"])
-    llm = ChatOllama(model="llama3", temperature=0, stop=["\nObservation"], callbacks=[AgentCallbackHandler()])
+    llm = ChatOllama(
+        model="llama3",
+        temperature=0,
+        stop=["\Observation"],
+        callbacks=[AgentCallbackHandler()],
+    )
     intermediate_steps = []
 
     agent = (
@@ -86,30 +91,27 @@ if __name__ == "__main__":
         | ReActSingleInputOutputParser()
     )
 
-    agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
-        {
-            "input": "What is the length in characters of text DOG?",
-            "agent_scratchpad": intermediate_steps,
-        }
-    )
-    print(agent_step)
-
-    if isinstance(agent_step, AgentAction):
-        tool_name = agent_step.tool
-        tool_to_use = find_tool_by_name(tools, tool_name)
-        tool_input = agent_step.tool_input
-
-        observation = tool_to_use.func(str(tool_input))
-        print(f"{observation}")
-        intermediate_steps.append((agent_step, str(observation)))
-        print("Intermediatestep" + str(intermediate_steps))
+    agent_step = ""
+    while not isinstance(agent_step, AgentFinish):
         agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
             {
                 "input": "What is the length in characters of text DOG?",
                 "agent_scratchpad": intermediate_steps,
             }
         )
-        if isinstance(agent_step, AgentFinish):
-            print(agent_step.return_values)
-        else:
-            print("Error: Agent did not finish.")
+        print("Raw LLM output:", agent_step)
+
+        if isinstance(agent_step, AgentAction):
+            tool_name = agent_step.tool
+            tool_to_use = find_tool_by_name(tools, tool_name)
+            tool_input = agent_step.tool_input
+
+            observation = tool_to_use.func(str(tool_input))
+            print(f"{observation}")
+            intermediate_steps.append((agent_step, str(observation)))
+            print("Intermediatestep" + str(intermediate_steps))
+
+    if isinstance(agent_step, AgentFinish):
+        print(agent_step.return_values)
+    else:
+        print("Error: Agent did not finish.")
