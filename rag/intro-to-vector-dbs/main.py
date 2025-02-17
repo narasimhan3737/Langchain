@@ -16,18 +16,18 @@ load_dotenv()
 if __name__ == "__main__":
     print("Retrieving...")
 
-    #embeddings = OpenAIEmbeddings()
-    #embeddings = HuggingFaceEmbeddings()
-    embeddings = HuggingFaceEmbeddings(model_name='intfloat/multilingual-e5-large')
-    #llm = ChatOpenAI()
+    # embeddings = OpenAIEmbeddings()
+    # embeddings = HuggingFaceEmbeddings()
+    embeddings = HuggingFaceEmbeddings(model_name="intfloat/multilingual-e5-large")
+    # llm = ChatOpenAI()
     llm = Ollama(model="deepseek-r1:8b")
-    
+
     query = "what is Pinecone in machine learning?"
     chain = PromptTemplate.from_template(template=query) | llm
     result = chain.invoke(input={})
-    #print(result.content)
+    # print(result.content)
 
-    vectorstore =PineconeVectorStore(
+    vectorstore = PineconeVectorStore(
         index_name=os.environ["INDEX_NAME2"], embedding=embeddings
     )
 
@@ -37,5 +37,5 @@ if __name__ == "__main__":
         retriever=vectorstore.as_retriever(), combine_docs_chain=combine_docs_chain
     )
 
-    result  = retrieval_chain.invoke(input={"input": query})
+    result = retrieval_chain.invoke(input={"input": query})
     print(result)

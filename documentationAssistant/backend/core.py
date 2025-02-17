@@ -1,5 +1,4 @@
 import os
-from unittest import result
 from dotenv import load_dotenv
 from langchain.chains.retrieval import create_retrieval_chain
 from openai import chat
@@ -13,9 +12,12 @@ from langchain import hub
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_pinecone import PineconeVectorStore
 
+
 def run_llm(query: str):
-    embeddings = HuggingFaceEmbeddings(model_name='intfloat/multilingual-e5-large')
-    docsearch = PineconeVectorStore(index_name=os.environ['INDEX_NAME'], embedding=embeddings)
+    embeddings = HuggingFaceEmbeddings(model_name="intfloat/multilingual-e5-large")
+    docsearch = PineconeVectorStore(
+        index_name=os.environ["INDEX_NAME"], embedding=embeddings
+    )
     chat = Ollama(model="deepseek-r1:8b")
 
     retrieval_qa_chat_prompt = hub.pull("langchain-ai/retrieval-qa-chat")
@@ -24,8 +26,15 @@ def run_llm(query: str):
     qa = create_retrieval_chain(
         retriever=docsearch.as_retriever(), combine_docs_chain=stuff_documents_chain
     )
-    return result
+    result = qa.invoke(input={"input": query})
+    new_result = {
+        "query": result["input"],
+        "result": result["answer"],
+        "source_documents": result["context"],
+    }
+    return new_result
+
 
 if __name__ == "__main__":
     res = run_llm(query="What is a LangChain Chain?")
-    print(res)
+    print(res["answer"])

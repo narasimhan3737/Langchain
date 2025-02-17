@@ -14,20 +14,22 @@ import pinecone
 load_dotenv()
 if __name__ == "__main__":
     print("Ingesting...")
-    loader = TextLoader("E:/Work/LLM/LangChain/rag/intro-to-vector-dbs/mediumblog1.txt",encoding='unicode_escape')    
+    loader = TextLoader(
+        "E:/Work/LLM/LangChain/rag/intro-to-vector-dbs/mediumblog1.txt",
+        encoding="unicode_escape",
+    )
     document = loader.load()
 
     print("splitting...")
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     texts = text_splitter.split_documents(document)
     print(f"created {len(texts)} chunks")
-    
-    pc = pinecone.Pinecone(api_key=os.environ['PINECONE_API_KEY'])
-    #pinecone_client = Pinecone(api_key=os.environ['PINECONE_API_KEY'], environment=os.environ['PINECONE_ENV'])
 
-    
+    pc = pinecone.Pinecone(api_key=os.environ["PINECONE_API_KEY"])
+    # pinecone_client = Pinecone(api_key=os.environ['PINECONE_API_KEY'], environment=os.environ['PINECONE_ENV'])
+
     index_name = os.environ.get("INDEX_NAME2")
-    
+
     """
     if index_name not in pc.list_indexes():
         pc.create_index(
@@ -41,26 +43,28 @@ if __name__ == "__main__":
         )
         #raise ValueError(f"Index '{index_name}' does not exist. Please create it in your Pinecone console.")
     """
-    
-    #index = pinecone.get_index(index_name)
+
+    # index = pinecone.get_index(index_name)
     index = pc.Index(host=os.environ.get("INDEX_HOST2"))
     index_stats = index.describe_index_stats()
-    index_dim = index_stats['dimension']
+    index_dim = index_stats["dimension"]
 
-    
+    # embeddings = OpenAIEmbeddings(openai_api_key=os.environ.get("OPEN_API_KEY"),model="text-embedding-3-small")
+    # embeddings = OllamaEmbeddings(model="llama3")
+    # embeddings = PineconeEmbeddings(model="multilingual-e5-large")
+    # embeddings = HuggingFaceEmbeddings(model_name='Xenova/gte-small')
 
-    #embeddings = OpenAIEmbeddings(openai_api_key=os.environ.get("OPEN_API_KEY"),model="text-embedding-3-small")
-    #embeddings = OllamaEmbeddings(model="llama3")
-    #embeddings = PineconeEmbeddings(model="multilingual-e5-large")
-    #embeddings = HuggingFaceEmbeddings(model_name='Xenova/gte-small')
-    
     if index_dim == 384:
-        embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
+        embeddings = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        )
     elif index_dim == 1024:
-        embeddings = HuggingFaceEmbeddings(model_name='intfloat/multilingual-e5-large')
-        
+        embeddings = HuggingFaceEmbeddings(model_name="intfloat/multilingual-e5-large")
+
     else:
         raise ValueError(f"Unsupported index dimension: {index_dim}")
-    
+
     print("ingesting....")
-    PineconeVectorStore.from_documents(texts, embeddings, index_name=os.environ['INDEX_NAME2'])
+    PineconeVectorStore.from_documents(
+        texts, embeddings, index_name=os.environ["INDEX_NAME2"]
+    )
