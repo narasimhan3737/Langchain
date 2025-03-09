@@ -1,0 +1,7 @@
+langchain 
+langchain-openai
+langchain-pinecone
+python-dotenv
+langchainhub
+black
+sentence_transformers
